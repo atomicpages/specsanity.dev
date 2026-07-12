@@ -1,2 +1,2 @@
 bunx lint-staged
-bun test --randomize
+bun test --randomize --changed
