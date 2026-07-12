@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Spec Sanity">
+  <title>Spec Sanity</title>
+  <rect width="32" height="32" rx="7" fill="#0d9488"/>
+  <path
+    d="M16 5L8 8.5V14.5C8 19.5 11.5 23.5 16 25C20.5 23.5 24 19.5 24 14.5V8.5L16 5Z"
+    stroke="white"
+    stroke-width="1.75"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M12.5 15L14.75 17.25L19.5 12.5"
+    stroke="white"
+    stroke-width="1.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
