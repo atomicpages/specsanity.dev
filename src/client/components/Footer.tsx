@@ -43,6 +43,47 @@ export function Footer() {
                   type="button"
                   className="cursor-pointer transition-colors hover:text-foreground"
                 >
+                  About
+                </button>
+              }
+            />
+            <DialogContent>
+              <div className="flex items-center justify-between">
+                <DialogTitle>About Spec Sanity</DialogTitle>
+                <DialogClose
+                  render={
+                    <Button variant="ghost" size="icon-sm" aria-label="Close">
+                      <X className="size-4" aria-hidden="true" />
+                    </Button>
+                  }
+                />
+              </div>
+              <DialogDescription className="mt-2">
+                A simple way to check your API description.
+              </DialogDescription>
+              <div className="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-foreground">
+                <p>
+                  An OpenAPI spec is a file that describes how an API works.
+                  Spec Sanity helps you check that file before you share it.
+                </p>
+                <p>
+                  Add your spec from a link, paste it in, or upload a file. Spec
+                  Sanity checks it in your browser against common API guidelines
+                  and shows anything that may need attention.
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <span aria-hidden="true">&middot;</span>
+
+          <Dialog>
+            <DialogTrigger
+              render={
+                <button
+                  type="button"
+                  className="cursor-pointer transition-colors hover:text-foreground"
+                >
                   Changelog
                 </button>
               }
