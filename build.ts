@@ -1,6 +1,9 @@
 import { cpSync, rmSync } from "node:fs";
 import { basename, relative } from "node:path";
 import tailwind from "bun-plugin-tailwind";
+import { Provider } from "jotai";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
 
 rmSync("dist", { recursive: true, force: true });
 
@@ -40,6 +43,7 @@ if (!workerResult.success) {
 }
 
 cpSync("src/client/assets/favicon.svg", "dist/favicon.svg");
+cpSync("src/client/assets/og.png", "dist/og.png");
 
 const entryJs = result.outputs.find(
   (o) => o.kind === "entry-point" && o.path.endsWith(".js"),
@@ -58,27 +62,51 @@ const workerPath = workerJs
   ? `./${basename(workerJs.path)}`
   : "./validate.worker.js";
 
+const { App } = await import("./src/client/App");
+const appHtml = renderToString(
+  createElement(Provider, null, createElement(App)),
+);
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Spec Sanity",
+  url: "https://specsanity.dev",
+  description:
+    "Free online OpenAPI linter powered by Redocly. Validate specs from URL, file, or paste. Configure rules, fix issues, and share results with your team.",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0" },
+});
+
 const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Spec Sanity — Sanity-check your OpenAPI specs</title>
+    <title>Spec Sanity — Free Online OpenAPI Linter &amp; Validator</title>
     <meta
       name="description"
-      content="Lint, configure Redocly rules, and share OpenAPI validation results."
+      content="Free online OpenAPI linter powered by Redocly. Validate specs from URL, file, or paste. Configure rules, fix issues, and share results with your team."
     />
-    <meta property="og:title" content="Spec Sanity" />
+    <meta property="og:title" content="Spec Sanity — Free Online OpenAPI Linter & Validator" />
     <meta
       property="og:description"
-      content="Lint, configure Redocly rules, and share OpenAPI validation results."
+      content="Free online OpenAPI linter powered by Redocly. Validate specs from URL, file, or paste. Configure rules, fix issues, and share results with your team."
     />
     <meta property="og:url" content="https://specsanity.dev" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://specsanity.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Spec Sanity — Free Online OpenAPI Linter & Validator" />
+    <meta name="twitter:description" content="Free online OpenAPI linter powered by Redocly. Validate specs from URL, file, or paste. Configure rules, fix issues, and share results with your team." />
+    <meta name="twitter:image" content="https://specsanity.dev/og.png" />
     <link rel="canonical" href="https://specsanity.dev" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="${cssPath}" />
+    <script type="application/ld+json">${jsonLd}</script>
   </head>
   <body>
     <a
@@ -87,7 +115,7 @@ const html = `<!DOCTYPE html>
     >
       Skip to main content
     </a>
-    <div id="root"></div>
+    <div id="root">${appHtml}</div>
     <script>window.__VALIDATE_WORKER_URL__="${workerPath}";</script>
     <script type="module" src="${jsPath}"></script>
   </body>

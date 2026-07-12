@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { api } from "../api/client";
 import { inputModeAtom, specAtom, specNameAtom } from "../atoms/spec";
 import { BRAND } from "../lib/brand";
+import { Footer } from "./Footer";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -23,55 +24,58 @@ export function LandingPage() {
   const setInputMode = useSetAtom(inputModeAtom);
 
   return (
-    <main
-      id="main-content"
-      className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-16"
-    >
-      <p className="text-xs font-medium uppercase tracking-widest text-primary">
-        {BRAND.domain}
-      </p>
-      <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground">
-        Keep your OpenAPI specs sane
-      </h1>
-      <p className="mt-3 text-muted-foreground">
-        Lint with Redocly rules, tune severity, and share results — from a URL,
-        paste, or file.
-      </p>
+    <>
+      <main
+        id="main-content"
+        className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-16"
+      >
+        <p className="text-xs font-medium uppercase tracking-widest text-primary">
+          {BRAND.domain}
+        </p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground">
+          Keep your OpenAPI specs sane
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Lint with Redocly rules, tune severity, and share results — from a
+          URL, paste, or file.
+        </p>
 
-      <div className="mt-10">
-        <Tabs
-          defaultValue="url"
-          onValueChange={(v) => setInputMode(v as "url" | "paste" | "upload")}
-        >
-          <TabsList variant="default" className="grid w-full grid-cols-3">
-            <TabsTrigger value="url">
-              <Link2 className="size-4" aria-hidden="true" />
-              URL
-            </TabsTrigger>
-            <TabsTrigger value="paste">
-              <Type className="size-4" aria-hidden="true" />
-              Paste
-            </TabsTrigger>
-            <TabsTrigger value="upload">
-              <FileUp className="size-4" aria-hidden="true" />
-              Upload
-            </TabsTrigger>
-          </TabsList>
+        <div className="mt-10">
+          <Tabs
+            defaultValue="url"
+            onValueChange={(v) => setInputMode(v as "url" | "paste" | "upload")}
+          >
+            <TabsList variant="default" className="grid w-full grid-cols-3">
+              <TabsTrigger value="url">
+                <Link2 className="size-4" aria-hidden="true" />
+                URL
+              </TabsTrigger>
+              <TabsTrigger value="paste">
+                <Type className="size-4" aria-hidden="true" />
+                Paste
+              </TabsTrigger>
+              <TabsTrigger value="upload">
+                <FileUp className="size-4" aria-hidden="true" />
+                Upload
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="url" className="mt-4">
-            <UrlTab setSpec={setSpec} setSpecName={setSpecName} />
-          </TabsContent>
+            <TabsContent value="url" className="mt-4">
+              <UrlTab setSpec={setSpec} setSpecName={setSpecName} />
+            </TabsContent>
 
-          <TabsContent value="paste" className="mt-4">
-            <PasteTab setSpec={setSpec} setSpecName={setSpecName} />
-          </TabsContent>
+            <TabsContent value="paste" className="mt-4">
+              <PasteTab setSpec={setSpec} setSpecName={setSpecName} />
+            </TabsContent>
 
-          <TabsContent value="upload" className="mt-4">
-            <UploadTab setSpec={setSpec} setSpecName={setSpecName} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </main>
+            <TabsContent value="upload" className="mt-4">
+              <UploadTab setSpec={setSpec} setSpecName={setSpecName} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }
 

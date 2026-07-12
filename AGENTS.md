@@ -57,3 +57,14 @@ Rules:
    `process.env` changes in `afterAll` or in the specific `it`/`test` block
 7. When in plan mode, ALWAYS show example code for illustrative purposes. Words
    alone are not enough.
+8. After changes, review [CHANGELOG.md](./CHANGELOG.md). Write for **product
+   users** (people using the site), not operators or future you.
+   - **Include** only what they would notice or care about: new/changed behavior
+     in the UI, faster/slower flows, fixes to live OAuth testing, breaking
+     changes to URLs or responses they consume.
+   - **Omit** deploy knobs (`wrangler`, env var names, kill switches), internal
+     architecture (KV, caches, refactors), and anything that belongs in
+     `server/CONTEXT.md` / runbooks. If the note is “how we run or disable it,”
+     it does not go in the changelog.
+   - **Litmus test:** “Would this matter to someone who only pastes a URL and
+     reads the report?” If no, skip it.

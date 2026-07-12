@@ -13,6 +13,12 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
     },
+    "seo-audit": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/seo-audit/SKILL.md",
+      "computedHash": "f2dc52130189068981f21e1c0bdc4471ac7cd9b08d8a1320604411aa0f950385"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

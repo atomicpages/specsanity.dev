@@ -1,4 +1,7 @@
 import { treaty } from "@elysiajs/eden";
 import type { App } from "../../worker/index";
 
-export const api = treaty<App>(window.location.origin);
+const origin =
+  typeof window !== "undefined" ? window.location.origin : "http://localhost";
+
+export const api = treaty<App>(origin);
