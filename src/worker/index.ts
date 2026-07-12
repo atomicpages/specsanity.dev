@@ -5,12 +5,10 @@ import { env } from "./env";
 import { rateLimit } from "./lib/ratelimit";
 import { proxyRoutes } from "./routes/proxy";
 import { shareRoutes } from "./routes/share";
-import { validateRoutes } from "./routes/validate";
 
 const app = new Elysia({ adapter: CloudflareAdapter })
-  .use(openapi({ enabled: env.isDev }))
+  .use(openapi({ enabled: env.DEV_MODE }))
   .use(rateLimit)
-  .use(validateRoutes)
   .use(proxyRoutes)
   .use(shareRoutes)
   .onError(({ code, error, set }) => {

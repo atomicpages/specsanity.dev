@@ -9,14 +9,31 @@ const result = await Bun.build({
   outdir: "dist",
   minify: true,
   splitting: true,
+  sourcemap: "external",
   target: "browser",
   plugins: [tailwind],
   naming: "[name]-[hash].[ext]",
 });
 
 if (!result.success) {
-  console.error("Build failed:");
+  console.error("Client build failed:");
   for (const log of result.logs) {
+    console.error(log);
+  }
+  process.exit(1);
+}
+
+const workerResult = await Bun.build({
+  entrypoints: ["src/client/workers/validate.worker.ts"],
+  outdir: "dist",
+  minify: true,
+  target: "browser",
+  naming: "[name]-[hash].[ext]",
+});
+
+if (!workerResult.success) {
+  console.error("Worker build failed:");
+  for (const log of workerResult.logs) {
     console.error(log);
   }
   process.exit(1);
@@ -31,8 +48,15 @@ const entryCss =
   result.outputs.find((o) => o.kind === "asset" && o.path.endsWith(".css")) ??
   result.outputs.find((o) => o.path.endsWith(".css"));
 
+const workerJs = workerResult.outputs.find(
+  (o) => o.kind === "entry-point" && o.path.endsWith(".js"),
+);
+
 const jsPath = entryJs ? `./${basename(entryJs.path)}` : "./index.js";
 const cssPath = entryCss ? `./${basename(entryCss.path)}` : "./index.css";
+const workerPath = workerJs
+  ? `./${basename(workerJs.path)}`
+  : "./validate.worker.js";
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -64,6 +88,7 @@ const html = `<!DOCTYPE html>
       Skip to main content
     </a>
     <div id="root"></div>
+    <script>window.__VALIDATE_WORKER_URL__="${workerPath}";</script>
     <script type="module" src="${jsPath}"></script>
   </body>
 </html>
@@ -71,11 +96,14 @@ const html = `<!DOCTYPE html>
 
 await Bun.write("dist/index.html", html);
 
+const allOutputs = [...result.outputs, ...workerResult.outputs];
 const chunks = result.outputs.filter((o) => o.kind === "chunk");
+
 console.log(
-  `Built ${result.outputs.length} files to dist/ (${chunks.length} async chunks)`,
+  `Built ${allOutputs.length} files to dist/ (${chunks.length} async chunks, 1 worker)`,
 );
-for (const o of result.outputs) {
+
+for (const o of allOutputs) {
   const size = o.size > 1024 ? `${(o.size / 1024).toFixed(1)}KB` : `${o.size}B`;
   console.log(
     `  ${o.kind.padEnd(12)} ${relative("dist", o.path).padEnd(30)} ${size}`,

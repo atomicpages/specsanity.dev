@@ -8,7 +8,7 @@
     "build": "bun build.ts",
     "cf-typegen": "wrangler types",
     "deploy": "bun run build && wrangler deploy",
-    "dev": "bun --watch --hot src/index.ts",
+    "dev": "bun --watch --hot --preload ./src/dev-shim.ts src/index.ts",
     "dev:worker": "bun run build && wrangler dev",
     "format:md": "prettier --write --prose-wrap=always",
     "lint": "biome check . --diagnostic-level error",

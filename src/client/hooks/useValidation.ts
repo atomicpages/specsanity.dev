@@ -1,8 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { api } from "../api/client";
 import { configOverridesAtom, presetAtom } from "../atoms/config";
 import { formatCompleteAtom } from "../atoms/editor";
 import { specAtom } from "../atoms/spec";
@@ -12,6 +11,17 @@ import {
   validationResultsAtom,
 } from "../atoms/validation";
 import { presets } from "../lib/presets";
+import type { ValidateResponse } from "../workers/validate.worker";
+
+declare global {
+  interface Window {
+    __VALIDATE_WORKER_URL__?: string;
+  }
+}
+
+function getWorkerUrl(): string {
+  return window.__VALIDATE_WORKER_URL__ ?? "/validate.worker.js";
+}
 
 export function useValidation() {
   const setIsValidating = useSetAtom(isValidatingAtom);
@@ -20,6 +30,21 @@ export function useValidation() {
   const isValidating = useAtomValue(isValidatingAtom);
   const hasValidated = useAtomValue(hasValidatedAtom);
   const formatComplete = useAtomValue(formatCompleteAtom);
+  const workerRef = useRef<Worker | null>(null);
+
+  const getWorker = useCallback(() => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(getWorkerUrl(), { type: "module" });
+    }
+    return workerRef.current;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    };
+  }, []);
 
   const validate = useAtomCallback(
     useCallback(
@@ -35,19 +60,28 @@ export function useValidation() {
         setIsValidating(true);
         try {
           const config = { ...presets[preset], rules: overrides };
-          const { data, error } = await api.api.validate.post({
-            spec,
-            config,
-          });
+          const worker = getWorker();
 
-          if (error || !data || data instanceof Response) {
-            toast.error("Validation failed", {
-              description: error ? String(error) : "Unknown error",
-            });
+          const result = await new Promise<ValidateResponse>(
+            (resolve, reject) => {
+              worker.onmessage = (e: MessageEvent<ValidateResponse>) => {
+                resolve(e.data);
+              };
+
+              worker.onerror = (e) => {
+                reject(new Error(e.message));
+              };
+
+              worker.postMessage({ spec, config });
+            },
+          );
+
+          if ("error" in result) {
+            toast.error("Validation failed", { description: result.error });
             return;
           }
 
-          setValidationResults(data.problems);
+          setValidationResults(result.problems);
           setHasValidated(true);
         } catch {
           toast.error("Validation failed");
@@ -55,7 +89,7 @@ export function useValidation() {
           setIsValidating(false);
         }
       },
-      [setIsValidating, setValidationResults, setHasValidated],
+      [setIsValidating, setValidationResults, setHasValidated, getWorker],
     ),
   );
 
