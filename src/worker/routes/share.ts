@@ -7,21 +7,40 @@ import { toPublic } from "../lib/share-data";
 const ID_PATTERN = "^[A-Za-z0-9_-]+$";
 const SESSION_TOKEN_LENGTH = 32;
 const SESSION_MAX_AGE = 365 * 24 * 60 * 60;
+const encoder = new TextEncoder();
 
 const cookieSchema = t.Cookie({
   ss_session: t.Optional(t.String()),
 });
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  const ab = encoder.encode(a);
+  const bb = encoder.encode(b);
+  let result = 0;
+
+  for (let i = 0; i < ab.length; i++) {
+    result |= ab[i] ^ bb[i];
+  }
+
+  return result === 0;
+}
+
 function applySessionDefaults(cookie: {
   ss_session: {
     value: string;
     httpOnly: boolean;
+    secure: boolean;
     sameSite: string;
     path: string;
     maxAge: number;
   };
 }) {
   cookie.ss_session.httpOnly = true;
+  cookie.ss_session.secure = true;
   cookie.ss_session.sameSite = "strict";
   cookie.ss_session.path = "/";
   cookie.ss_session.maxAge = SESSION_MAX_AGE;
@@ -89,7 +108,10 @@ export const shareRoutes = new Elysia()
         return { error: "Not found" };
       }
 
-      if (existing.sessionToken !== sessionToken) {
+      if (
+        !existing.sessionToken ||
+        !timingSafeEqual(existing.sessionToken, sessionToken)
+      ) {
         set.status = 403;
         return { error: "Not the owner" };
       }
@@ -129,7 +151,10 @@ export const shareRoutes = new Elysia()
       }
 
       const sessionToken = cookie.ss_session.value;
-      const isOwner = !!sessionToken && data.sessionToken === sessionToken;
+      const isOwner =
+        !!sessionToken &&
+        !!data.sessionToken &&
+        timingSafeEqual(data.sessionToken, sessionToken);
 
       return { ...toPublic(data), isOwner };
     },

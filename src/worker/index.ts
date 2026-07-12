@@ -3,11 +3,13 @@ import { Elysia } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { env } from "./env";
 import { rateLimit } from "./lib/ratelimit";
+import { securityHeaders } from "./lib/security-headers";
 import { proxyRoutes } from "./routes/proxy";
 import { shareRoutes } from "./routes/share";
 
 const app = new Elysia({ adapter: CloudflareAdapter })
   .use(openapi({ enabled: env.DEV_MODE }))
+  .use(securityHeaders)
   .use(rateLimit)
   .use(proxyRoutes)
   .use(shareRoutes)
