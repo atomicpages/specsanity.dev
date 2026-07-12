@@ -1,11 +1,14 @@
 import { useAtomValue } from "jotai";
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { specAtom } from "./atoms/spec";
-import { EditorView } from "./components/EditorView";
 import { Header } from "./components/Header";
 import { LandingPage } from "./components/LandingPage";
 import { Toaster } from "./components/ui/sonner";
 import { useShare } from "./hooks/useShare";
+
+const EditorView = lazy(() =>
+  import("./components/EditorView").then((m) => ({ default: m.EditorView })),
+);
 
 export function App() {
   const spec = useAtomValue(specAtom);
@@ -23,7 +26,19 @@ export function App() {
   return (
     <div className="flex h-dvh flex-col bg-background text-foreground">
       <Header />
-      {spec !== null ? <EditorView /> : <LandingPage />}
+      {spec !== null ? (
+        <Suspense
+          fallback={
+            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+              Loading editor…
+            </div>
+          }
+        >
+          <EditorView />
+        </Suspense>
+      ) : (
+        <LandingPage />
+      )}
       <Toaster />
     </div>
   );

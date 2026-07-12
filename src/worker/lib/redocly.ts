@@ -4,21 +4,25 @@ import {
   lintFromString,
 } from "@redocly/openapi-core";
 
-export interface Problem {
-  severity: "error" | "warn";
-  message: string;
-  ruleId: string;
-  line: number;
-  col: number;
-  endLine?: number;
-  endCol?: number;
-  suggest?: string[];
-}
+import { type Static, t } from "elysia";
+
+export const Problem = t.Object({
+  severity: t.UnionEnum(["error", "warn"]),
+  message: t.String(),
+  ruleId: t.String(),
+  line: t.Number(),
+  col: t.Number(),
+  endLine: t.Optional(t.Number()),
+  endCol: t.Optional(t.Number()),
+  suggest: t.Array(t.String()),
+});
+
+export type TProblem = Static<typeof Problem>;
 
 export async function validateSpec(
   spec: string,
   rawConfig: object,
-): Promise<Problem[]> {
+): Promise<TProblem[]> {
   const config = await createConfig(rawConfig);
   const results = await lintFromString({ source: spec, config });
 
@@ -34,6 +38,6 @@ export async function validateSpec(
       endLine: loc?.end?.line,
       endCol: loc?.end?.col,
       suggest: problem.suggest,
-    };
+    } satisfies TProblem;
   });
 }

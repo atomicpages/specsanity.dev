@@ -6,9 +6,11 @@ import { api } from "../api/client";
 import { configOverridesAtom, presetAtom } from "../atoms/config";
 import {
   canSaveAtom,
+  isDirtyAtom,
   isOwnerAtom,
   isSavingAtom,
   isSharingAtom,
+  savedSnapshotAtom,
   shareIdAtom,
 } from "../atoms/share";
 import { specAtom } from "../atoms/spec";
@@ -18,11 +20,13 @@ export function useShare() {
   const isSharing = useAtomValue(isSharingAtom);
   const isSaving = useAtomValue(isSavingAtom);
   const canSave = useAtomValue(canSaveAtom);
+  const isDirty = useAtomValue(isDirtyAtom);
 
   const setSharing = useSetAtom(isSharingAtom);
   const setSaving = useSetAtom(isSavingAtom);
   const setShareId = useSetAtom(shareIdAtom);
   const setIsOwner = useSetAtom(isOwnerAtom);
+  const setSnapshot = useSetAtom(savedSnapshotAtom);
   const setSpec = useSetAtom(specAtom);
   const setPreset = useSetAtom(presetAtom);
   const setOverrides = useSetAtom(configOverridesAtom);
@@ -31,6 +35,7 @@ export function useShare() {
     useCallback(
       async (get) => {
         const spec = get(specAtom);
+
         if (!spec) {
           return;
         }
@@ -52,6 +57,7 @@ export function useShare() {
           const id = (data as { id: string }).id;
           setShareId(id);
           setIsOwner(true);
+          setSnapshot({ spec, preset, overrides });
 
           const url = `${window.location.origin}/s/${id}`;
           window.history.pushState(null, "", `/s/${id}`);
@@ -68,7 +74,7 @@ export function useShare() {
           setSharing(false);
         }
       },
-      [setSharing, setShareId, setIsOwner],
+      [setSharing, setShareId, setIsOwner, setSnapshot],
     ),
   );
 
@@ -97,6 +103,7 @@ export function useShare() {
             return;
           }
 
+          setSnapshot({ spec, preset, overrides });
           toast.success("Changes saved");
         } catch {
           toast.error("Failed to save changes");
@@ -104,7 +111,7 @@ export function useShare() {
           setSaving(false);
         }
       },
-      [setSaving],
+      [setSaving, setSnapshot],
     ),
   );
 
@@ -139,6 +146,10 @@ export function useShare() {
       setSpec(shared.spec);
       setIsOwner(!!shared.isOwner);
 
+      let restoredPreset: "minimal" | "recommended" | "recommended-strict" =
+        "recommended";
+      let restoredOverrides: Record<string, string> = {};
+
       if (shared.config) {
         const cfg = shared.config;
 
@@ -149,6 +160,7 @@ export function useShare() {
             presetName === "recommended" ||
             presetName === "recommended-strict"
           ) {
+            restoredPreset = presetName;
             setPreset(presetName);
           }
         }
@@ -158,17 +170,23 @@ export function useShare() {
           typeof cfg.rules === "object" &&
           !Array.isArray(cfg.rules)
         ) {
-          setOverrides(cfg.rules as Record<string, string>);
+          restoredOverrides = cfg.rules as Record<string, string>;
+          setOverrides(restoredOverrides);
         }
       }
 
       setShareId(id);
+      setSnapshot({
+        spec: shared.spec,
+        preset: restoredPreset,
+        overrides: restoredOverrides,
+      });
       return true;
     } catch {
       toast.error("Shared spec not found or expired");
       return false;
     }
-  }, [setSpec, setPreset, setOverrides, setShareId, setIsOwner]);
+  }, [setSpec, setPreset, setOverrides, setShareId, setIsOwner, setSnapshot]);
 
-  return { share, save, isSharing, isSaving, canSave, restoreFromUrl };
+  return { share, save, isSharing, isSaving, canSave, isDirty, restoreFromUrl };
 }

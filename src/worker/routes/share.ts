@@ -12,7 +12,15 @@ const cookieSchema = t.Cookie({
   ss_session: t.Optional(t.String()),
 });
 
-function applySessionDefaults(cookie: { ss_session: { value: string; httpOnly: boolean; sameSite: string; path: string; maxAge: number } }) {
+function applySessionDefaults(cookie: {
+  ss_session: {
+    value: string;
+    httpOnly: boolean;
+    sameSite: string;
+    path: string;
+    maxAge: number;
+  };
+}) {
   cookie.ss_session.httpOnly = true;
   cookie.ss_session.sameSite = "strict";
   cookie.ss_session.path = "/";
@@ -27,6 +35,7 @@ export const shareRoutes = new Elysia()
       const ttlDays = env.SHARE_TTL_DAYS;
 
       let token = cookie.ss_session.value;
+
       if (!token) {
         token = nanoid(SESSION_TOKEN_LENGTH);
         cookie.ss_session.value = token;
@@ -34,7 +43,12 @@ export const shareRoutes = new Elysia()
       }
 
       try {
-        await putShare(id, { spec: body.spec, config: body.config, sessionToken: token }, ttlDays);
+        set.status = 201;
+        await putShare(
+          id,
+          { spec: body.spec, config: body.config, sessionToken: token },
+          ttlDays,
+        );
       } catch {
         set.status = 500;
         return { error: "Failed to save share" };
@@ -48,6 +62,14 @@ export const shareRoutes = new Elysia()
         config: t.Object({}, { additionalProperties: true }),
       }),
       cookie: cookieSchema,
+      response: {
+        201: t.Object({
+          id: t.String(),
+        }),
+        500: t.Object({
+          error: t.String(),
+        }),
+      },
     },
   )
   .put(

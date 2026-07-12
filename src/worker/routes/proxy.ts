@@ -20,23 +20,19 @@ export function isPrivateHost(hostname: string): boolean {
     .replace(/^\[|\]$/g, "")
     .replace(/\.$/, "")
     .toLowerCase();
+
   const stripped = h.startsWith("::ffff:") ? h.slice(7) : h;
+
   return PRIVATE_IP_RANGES.some(
     (pattern) => pattern.test(stripped) || pattern.test(h),
   );
-}
-
-function jsonError(message: string, status: number): Response {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
 }
 
 function isAllowedTarget(url: URL): boolean {
   if (url.protocol !== "https:" && url.protocol !== "http:") {
     return false;
   }
+
   return !isPrivateHost(url.hostname);
 }
 
@@ -49,11 +45,13 @@ async function readCapped(
   max: number,
 ): Promise<Uint8Array | null> {
   const contentLength = Number(response.headers.get("content-length") || 0);
+
   if (contentLength > max) {
     return null;
   }
 
   const body = response.body;
+
   if (!body) {
     return new Uint8Array(0);
   }
@@ -64,42 +62,52 @@ async function readCapped(
 
   while (true) {
     const { done, value } = await reader.read();
+
     if (done) {
       break;
     }
+
     total += value.byteLength;
+
     if (total > max) {
       await reader.cancel();
       return null;
     }
+
     chunks.push(value);
   }
 
   const out = new Uint8Array(total);
   let offset = 0;
+
   for (const chunk of chunks) {
     out.set(chunk, offset);
     offset += chunk.byteLength;
   }
+
   return out;
 }
 
 export const proxyRoutes = new Elysia().post(
   "/api/proxy",
-  async ({ body }) => {
+  async ({ body, set }) => {
     let parsed: URL;
+
     try {
       parsed = new URL(body.url);
     } catch {
-      return jsonError("Invalid URL", 400);
+      set.status = 400;
+      return { error: "Invalid URL" };
     }
 
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-      return jsonError("Only http and https schemes are allowed", 400);
+      set.status = 400;
+      return { error: "Only http and https schemes are allowed" };
     }
 
     if (isPrivateHost(parsed.hostname)) {
-      return jsonError("Private/internal URLs are not allowed", 400);
+      set.status = 400;
+      return { error: "Private/internal URLs are not allowed" };
     }
 
     try {
@@ -112,40 +120,67 @@ export const proxyRoutes = new Elysia().post(
         });
 
         const isRedirect = response.status >= 300 && response.status < 400;
+
         if (!isRedirect) {
           const bytes = await readCapped(response, env.MAX_SPEC_SIZE);
+
           if (!bytes) {
-            return jsonError("Response too large (max 10 MB)", 413);
+            set.status = 413;
+            return { error: "Response too large (max 10 MB)" };
           }
+
           const spec = new TextDecoder().decode(bytes);
+
           const contentType =
             response.headers.get("content-type") ?? "text/plain";
+
           return { spec, contentType };
         }
 
         const location = response.headers.get("location");
+
         if (!location) {
-          return jsonError("Failed to fetch the URL", 502);
+          set.status = 502;
+          return { error: "Failed to fetch the URL" };
         }
 
         const next = new URL(location, current);
+
         if (!isAllowedTarget(next)) {
-          return jsonError(
-            "Redirect to a disallowed or private URL was blocked",
-            400,
-          );
+          set.status = 400;
+          return {
+            error: "Redirect to a disallowed or private URL was blocked",
+          };
         }
+
         current = next.href;
       }
 
-      return jsonError("Too many redirects", 400);
+      set.status = 400;
+      return { error: "Too many redirects" };
     } catch {
-      return jsonError("Failed to fetch the URL", 502);
+      set.status = 502;
+      return { error: "Failed to fetch the URL" };
     }
   },
   {
     body: t.Object({
       url: t.String({ format: "uri", pattern: "^https?://" }),
     }),
+    response: {
+      200: t.Object({
+        spec: t.String(),
+        contentType: t.String(),
+      }),
+      400: t.Object({
+        error: t.String(),
+      }),
+      413: t.Object({
+        error: t.String(),
+      }),
+      502: t.Object({
+        error: t.String(),
+      }),
+    },
   },
 );

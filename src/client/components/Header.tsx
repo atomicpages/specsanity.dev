@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useCallback } from "react";
 import { configOverridesAtom } from "../atoms/config";
-import { isOwnerAtom, shareIdAtom } from "../atoms/share";
+import { isOwnerAtom, savedSnapshotAtom, shareIdAtom } from "../atoms/share";
 import { hasSpecAtom, specAtom, specNameAtom } from "../atoms/spec";
 import type { Theme } from "../atoms/theme";
 import { hasValidatedAtom, validationResultsAtom } from "../atoms/validation";
@@ -46,8 +46,9 @@ export function Header() {
   const setOverrides = useSetAtom(configOverridesAtom);
   const setHasValidated = useSetAtom(hasValidatedAtom);
   const setIsOwner = useSetAtom(isOwnerAtom);
+  const setSnapshot = useSetAtom(savedSnapshotAtom);
   const { validate, isValidating } = useValidation();
-  const { share, save, isSharing, isSaving, canSave } = useShare();
+  const { share, save, isSharing, isSaving, canSave, isDirty } = useShare();
 
   const handleNewSpec = useCallback(() => {
     setSpec(null);
@@ -56,6 +57,7 @@ export function Header() {
     setHasValidated(false);
     setShareId(null);
     setIsOwner(false);
+    setSnapshot(null);
     setOverrides({});
 
     if (window.location.pathname !== "/") {
@@ -68,6 +70,7 @@ export function Header() {
     setHasValidated,
     setShareId,
     setIsOwner,
+    setSnapshot,
     setOverrides,
   ]);
 
@@ -113,7 +116,7 @@ export function Header() {
                   variant="outline"
                   size="sm"
                   onClick={save}
-                  disabled={isSaving}
+                  disabled={isSaving || !isDirty}
                 >
                   {isSaving ? (
                     <Loader2

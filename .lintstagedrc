@@ -1,0 +1,4 @@
+{
+  "*.{ts,js,tsx,jsx}": "bun lint --fix",
+  "*.{md,mdx}": "bunx prettier --write --prose-wrap always"
+}

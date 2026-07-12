@@ -40,7 +40,7 @@ function getShare(id: string, cookie?: string) {
 describe("POST /api/share", () => {
   it("creates a share and sets session cookie", async () => {
     const res = await shareRoutes.handle(postShare("openapi: 3.0.0"));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
 
     const json = (await res.json()) as { id: string };
     expect(json.id).toBeDefined();
@@ -55,7 +55,7 @@ describe("POST /api/share", () => {
     const res = await shareRoutes.handle(
       postShare("openapi: 3.0.0", {}, "ss_session=my-existing-token"),
     );
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
 
     const setCookie = res.headers.get("set-cookie");
     expect(setCookie).toBeNull();
