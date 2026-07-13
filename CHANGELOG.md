@@ -6,18 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.1] - 2025-07-12
 
-## [1.0.50] - 2025-07-12
+## Added
 
-### Added
-
-- Footer with a **Changelog** link to read release notes in the app
-- Start a validation from a **URL**, **paste**, or **file upload**
-- **Share** your spec and results — get a link anyone can open
-- **Save** updates to a share you own (when you're signed in as the owner)
-- Change rule severity (error, warn, off) for the current session
-- **Dark**, **light**, and **system** theme
+- About dialog
 
 ### Changed
 
@@ -27,10 +20,16 @@ and this project adheres to
 
 - Validation no longer slows down when you re-run checks on the same spec
 
-## [1.0.0] - 2025-06-01
+## [1.0.0] - 2025-07-12
 
 ### Added
 
+- Footer with a **Changelog** link to read release notes in the app
+- Start a validation from a **URL**, **paste**, or **file upload**
+- **Share** your spec and results — get a link anyone can open
+- **Save** updates to a share you own (when you're signed in as the owner)
+- Change rule severity (error, warn, off) for the current session
+- **Dark**, **light**, and **system** theme
 - Validate OpenAPI specs with Redocly rules
 - Syntax-highlighted YAML/JSON editor
 - Resizable editor and problems panel

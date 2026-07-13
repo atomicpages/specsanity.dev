@@ -1,6 +1,6 @@
 {
   "name": "specsanity",
-  "version": "1.0.50",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "module": "src/worker/index.ts",
