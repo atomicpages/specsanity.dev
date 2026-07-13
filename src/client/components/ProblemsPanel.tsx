@@ -14,6 +14,7 @@ import {
   type ValidationProblem,
   validationResultsAtom,
 } from "../atoms/validation";
+import { getFriendlyMessage } from "../lib/friendly-messages";
 
 type SeverityFilter = "all" | "error" | "warn";
 
@@ -136,6 +137,11 @@ const ProblemRow = memo(function ProblemRow({
   problem: ValidationProblem;
   onClick: (problem: ValidationProblem) => void;
 }) {
+  const friendlyMessage = useMemo(
+    () => getFriendlyMessage(problem.ruleId, problem.message),
+    [problem.ruleId, problem.message],
+  );
+
   return (
     <li className="flex items-start gap-2 px-3 py-2 text-sm">
       <button
@@ -156,7 +162,14 @@ const ProblemRow = memo(function ProblemRow({
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-foreground">{problem.message}</div>
+          <div className="truncate text-foreground">
+            {friendlyMessage ?? problem.message}
+          </div>
+          {friendlyMessage && (
+            <div className="mt-0.5 truncate text-xs text-muted-foreground/70 font-mono">
+              {problem.message}
+            </div>
+          )}
           <div className="mt-0.5 text-xs text-muted-foreground">
             {problem.line}:{problem.col}
           </div>

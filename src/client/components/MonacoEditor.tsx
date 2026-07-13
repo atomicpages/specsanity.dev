@@ -12,6 +12,7 @@ import { validationResultsAtom } from "../atoms/validation";
 import { useTheme } from "../hooks/useTheme";
 import { BRAND } from "../lib/brand";
 import { formatJson, formatYaml } from "../lib/format";
+import { getFriendlyMessage } from "../lib/friendly-messages";
 
 export function MonacoEditor() {
   const [spec, setSpec] = useAtom(specAtom);
@@ -42,17 +43,22 @@ export function MonacoEditor() {
       }
 
       const markers: Monaco.editor.IMarkerData[] = validationResults.map(
-        (problem) => ({
-          severity:
-            problem.severity === "error"
-              ? monaco.MarkerSeverity.Error
-              : monaco.MarkerSeverity.Warning,
-          message: `${problem.message} (${problem.ruleId})`,
-          startLineNumber: problem.line,
-          startColumn: problem.col,
-          endLineNumber: problem.endLine ?? problem.line,
-          endColumn: problem.endCol ?? problem.col + 1,
-        }),
+        (problem) => {
+          const friendly = getFriendlyMessage(problem.ruleId, problem.message);
+          return {
+            severity:
+              problem.severity === "error"
+                ? monaco.MarkerSeverity.Error
+                : monaco.MarkerSeverity.Warning,
+            message: friendly
+              ? `${friendly}\n\n${problem.message} (${problem.ruleId})`
+              : `${problem.message} (${problem.ruleId})`,
+            startLineNumber: problem.line,
+            startColumn: problem.col,
+            endLineNumber: problem.endLine ?? problem.line,
+            endColumn: problem.endCol ?? problem.col + 1,
+          };
+        },
       );
 
       monaco.editor.setModelMarkers(model, BRAND.slug, markers);
