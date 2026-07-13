@@ -3,7 +3,11 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
 
-assets = { directory = "dist" }
+[assets]
+directory = "dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
 
 # REQUIRED before deploy: replace the placeholder ids below with real KV
 # namespace ids. Create them with:

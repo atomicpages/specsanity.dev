@@ -56,11 +56,11 @@ const workerJs = workerResult.outputs.find(
   (o) => o.kind === "entry-point" && o.path.endsWith(".js"),
 );
 
-const jsPath = entryJs ? `./${basename(entryJs.path)}` : "./index.js";
-const cssPath = entryCss ? `./${basename(entryCss.path)}` : "./index.css";
+const jsPath = entryJs ? `/${basename(entryJs.path)}` : "/index.js";
+const cssPath = entryCss ? `/${basename(entryCss.path)}` : "/index.css";
 const workerPath = workerJs
-  ? `./${basename(workerJs.path)}`
-  : "./validate.worker.js";
+  ? `/${basename(workerJs.path)}`
+  : "/validate.worker.js";
 
 const { App } = await import("./src/client/App");
 const appHtml = renderToString(
@@ -104,7 +104,7 @@ const html = `<!DOCTYPE html>
     <meta name="twitter:description" content="Free online OpenAPI linter powered by Redocly. Validate specs from URL, file, or paste. Configure rules, fix issues, and share results with your team." />
     <meta name="twitter:image" content="https://specsanity.dev/og.png" />
     <link rel="canonical" href="https://specsanity.dev" />
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="${cssPath}" />
     <script type="application/ld+json">${jsonLd}</script>
   </head>
