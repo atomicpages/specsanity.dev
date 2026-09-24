@@ -174,7 +174,7 @@ function PasteTab({
         aria-label="OpenAPI specification content (YAML or JSON)"
         rows={10}
         required
-        className="min-h-64 resize-y font-mono text-sm"
+        className="min-h-64 max-h-128 resize-y font-mono text-sm"
       />
       <Button type="submit" size="sm" className="self-end">
         Load spec

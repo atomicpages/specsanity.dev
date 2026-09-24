@@ -4,6 +4,7 @@ import tailwind from "bun-plugin-tailwind";
 import { Provider } from "jotai";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
+import { redoclyBrowserPlugin } from "./src/client/workers/redocly-browser-plugin";
 
 rmSync("dist", { recursive: true, force: true });
 
@@ -31,6 +32,7 @@ const workerResult = await Bun.build({
   outdir: "dist",
   minify: true,
   target: "browser",
+  plugins: [redoclyBrowserPlugin],
   naming: "[name]-[hash].[ext]",
 });
 

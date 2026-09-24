@@ -1,6 +1,7 @@
 import { staticPlugin } from "@elysia/static";
 import { Elysia } from "elysia";
 import homepage from "./client/index.html";
+import { redoclyBrowserPlugin } from "./client/workers/redocly-browser-plugin";
 import { proxyRoutes } from "./worker/routes/proxy";
 import { shareRoutes } from "./worker/routes/share";
 
@@ -9,6 +10,7 @@ const workerBuild = await Bun.build({
   outdir: "/tmp/specsanity-dev",
   minify: false,
   target: "browser",
+  plugins: [redoclyBrowserPlugin],
 });
 
 const workerCode = workerBuild.success
